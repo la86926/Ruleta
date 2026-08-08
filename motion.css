@@ -1,0 +1,45 @@
+.result-card.show{animation:resultReveal .55s cubic-bezier(.2,.85,.22,1.15)}
+.result-card.winner-pop .result-value{animation:winnerPop .72s cubic-bezier(.18,.89,.32,1.28)}
+.result-card.is-hiding{animation:resultBreathe .9s ease-in-out infinite alternate}
+.wheel-wrap.is-removing .hub{animation:hubBreathe .76s ease-in-out}
+.wheel-wrap.is-closing{animation:wheelClose .82s cubic-bezier(.22,.9,.2,1)}
+.wheel-wrap.is-closing .pointer{animation:pointerTick .24s ease-in-out 3}
+.wheel-wrap.just-settled{animation:wheelSettle .58s cubic-bezier(.2,.9,.2,1.12)}
+.switch input:disabled+span{opacity:.5;cursor:default}
+
+@keyframes resultReveal{
+  0%{opacity:0;transform:translateY(14px) scale(.96)}
+  70%{opacity:1;transform:translateY(-2px) scale(1.015)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes winnerPop{
+  0%{opacity:.2;transform:scale(.82);filter:blur(3px)}
+  55%{opacity:1;transform:scale(1.08);filter:blur(0)}
+  100%{opacity:1;transform:scale(1)}
+}
+@keyframes resultBreathe{
+  from{box-shadow:0 0 0 rgba(10,132,255,0);transform:translateY(0)}
+  to{box-shadow:0 14px 30px rgba(10,132,255,.12);transform:translateY(-2px)}
+}
+@keyframes hubBreathe{
+  0%,100%{transform:scale(1)}
+  48%{transform:scale(.94)}
+}
+@keyframes wheelClose{
+  0%{transform:scale(1)}
+  48%{transform:scale(.985)}
+  100%{transform:scale(1)}
+}
+@keyframes pointerTick{
+  0%,100%{transform:translateX(-50%) rotate(0)}
+  50%{transform:translateX(-50%) rotate(4deg)}
+}
+@keyframes wheelSettle{
+  0%{transform:scale(.992)}
+  45%{transform:scale(1.012)}
+  100%{transform:scale(1)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .result-card.show,.result-card.winner-pop .result-value,.result-card.is-hiding,.wheel-wrap.is-removing .hub,.wheel-wrap.is-closing,.wheel-wrap.is-closing .pointer,.wheel-wrap.just-settled{animation:none!important}
+}
