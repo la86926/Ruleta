@@ -1,5 +1,7 @@
-.feature-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 10px}
-.feature-actions .btn{min-width:0;white-space:nowrap}
+.secondary-actions{margin-top:18px!important}
+.feature-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 16px}
+.feature-actions .btn{min-width:0;white-space:normal;line-height:1.2;text-align:center}
+.feature-actions #lockEditBtn{grid-column:1/-1;width:100%}
 .duplicate-warning{display:none;margin:7px 2px 0;color:#9a5a00;font-size:12px;line-height:1.35}
 .duplicate-warning.show{display:block}
 .history-title{gap:10px}
@@ -9,4 +11,9 @@
 .edition-locked #titleInput,.edition-locked #itemsInput,.edition-locked #rangeStartInput,.edition-locked #rangeEndInput{opacity:.65}
 .edition-locked .preset,.edition-locked #clearBtn,.edition-locked #restoreBtn,.edition-locked #mixListBtn,.edition-locked #rangeGenerateBtn{opacity:.52;cursor:not-allowed}
 #lockEditBtn.is-locked{font-weight:700}
-@media(max-width:520px){.feature-actions{grid-template-columns:1fr 1fr;margin-top:12px}.feature-actions #lockEditBtn{grid-column:1/-1}.history-actions{gap:6px}}
+@media(max-width:520px){
+  .secondary-actions{margin-top:18px!important}
+  .feature-actions{grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 16px}
+  .feature-actions #lockEditBtn{grid-column:1/-1}
+  .history-actions{gap:6px}
+}
