@@ -1,0 +1,11 @@
+{
+  "name": "Ruleta aleatoria",
+  "short_name": "Ruleta",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f8",
+  "theme_color": "#f7f7f8",
+  "icons": [
+    {"src": "apuesta.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
