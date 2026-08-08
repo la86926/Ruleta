@@ -31,7 +31,6 @@
 
   function values(){return itemsInput.value.split(/\n+/).map(v=>v.trim()).filter(Boolean).slice(0,250)}
 
-  // Duplicados: aviso discreto, sin impedir el sorteo.
   function updateDuplicateWarning(){
     if(!duplicateWarning)return;
     const map=new Map();
@@ -54,7 +53,6 @@
     }
   }
 
-  // Copiar historial visible, en el mismo orden en que aparece.
   copyHistoryBtn?.addEventListener('click',async()=>{
     const entries=[...(historyEl?.querySelectorAll('.history-chip')||[])].map(el=>el.textContent.trim()).filter(Boolean);
     if(!entries.length){showToast('Todavía no hay resultados para copiar.');return}
@@ -65,7 +63,6 @@
   function transitionActive(){return ['is-removing','is-gap','is-closing'].some(c=>wheelWrap?.classList.contains(c))}
   function spinningNow(){return Boolean(legacyFirst?.disabled&&legacyAgain?.disabled&&!transitionActive())}
 
-  // Mezclar la lista sin cambiar ninguna otra función de la ruleta.
   mixListBtn?.addEventListener('click',()=>{
     if(document.body.classList.contains('edition-locked')){showToast('Desbloquea la edición para mezclar la lista.');return}
     if(spinningNow()||transitionActive()){showToast('Espera a que termine el proceso actual.');return}
@@ -76,7 +73,6 @@
     showToast('Lista mezclada.');
   });
 
-  // Compartir la configuración actual dentro del propio enlace.
   shareBtn?.addEventListener('click',async()=>{
     const config={title:titleInput.value.trim()||'La Ruleta Aleatoria',items:values(),autoHide:Boolean(autoHideToggle?.checked)};
     if(config.items.length<1){showToast('Agrega opciones antes de compartir.');return}
@@ -100,7 +96,6 @@
     }catch(_){}
   }
 
-  // Bloquear/desbloquear edición durante la sesión.
   let locked=sessionStorage.getItem('ruleta-edit-locked')==='1';
   function applyLock(){
     document.body.classList.toggle('edition-locked',locked);
@@ -121,15 +116,6 @@
     event.preventDefault();event.stopImmediatePropagation();showToast('La edición está bloqueada.');
   },true);
 
-  // Confirmación antes de reiniciar, también con la tecla R.
-  function confirmReset(){return window.confirm('¿Reiniciar la ruleta? Se borrarán la lista actual, el historial y los valores ocultos.')}
-  resetBtn?.addEventListener('click',event=>{if(confirmReset())return;event.preventDefault();event.stopImmediatePropagation()},true);
-  document.addEventListener('keydown',event=>{
-    const tag=document.activeElement?.tagName;
-    if((event.key==='r'||event.key==='R')&&tag!=='TEXTAREA'&&tag!=='INPUT'&&!confirmReset()){event.preventDefault();event.stopImmediatePropagation()}
-  },true);
-
-  // Sonido opcional: activo por defecto y recordado por navegador.
   const SOUND_KEY='ruleta-sound-enabled';
   let soundEnabled=localStorage.getItem(SOUND_KEY)!=='0';
   if(soundToggle){soundToggle.checked=soundEnabled;soundToggle.addEventListener('change',()=>{soundEnabled=soundToggle.checked;localStorage.setItem(SOUND_KEY,soundEnabled?'1':'0');if(!soundEnabled)stopSpinSound()})}
@@ -153,6 +139,19 @@
   function stopSpinSound(){if(tickTimer){clearInterval(tickTimer);tickTimer=null}if(tickStopTimer){clearTimeout(tickStopTimer);tickStopTimer=null}}
   function winnerSound(){if(!soundEnabled)return;stopSpinSound();tone(660,.11,.035,'sine',0);tone(880,.13,.035,'sine',.09);tone(1100,.16,.03,'sine',.19)}
 
+  function confirmReset(){return window.confirm('¿Reiniciar la ruleta? Se borrarán la lista actual, el historial y los valores ocultos.')}
+  resetBtn?.addEventListener('click',event=>{
+    if(!confirmReset()){event.preventDefault();event.stopImmediatePropagation();return}
+    stopSpinSound();
+  },true);
+  document.addEventListener('keydown',event=>{
+    const tag=document.activeElement?.tagName;
+    if((event.key==='r'||event.key==='R')&&tag!=='TEXTAREA'&&tag!=='INPUT'){
+      if(!confirmReset()){event.preventDefault();event.stopImmediatePropagation();return}
+      stopSpinSound();
+    }
+  },true);
+
   mainSpinBtn?.addEventListener('click',()=>{if(!mainSpinBtn.disabled)startSpinSound()},true);
   wheel?.addEventListener('click',()=>{if(values().length>=2)startSpinSound()},true);
   document.addEventListener('keydown',event=>{
@@ -160,11 +159,9 @@
     if(event.code==='Space'&&tag!=='TEXTAREA'&&tag!=='INPUT'&&tag!=='BUTTON'&&values().length>=2)startSpinSound();
   },true);
 
-  let lastResult='';
   if(resultValue){
     const resultObserver=new MutationObserver(()=>{
-      const current=resultValue.textContent.trim();
-      if(current&&current!==lastResult){lastResult=current;winnerSound()}
+      if(resultValue.textContent.trim())winnerSound();
     });
     resultObserver.observe(resultValue,{childList:true,characterData:true,subtree:true});
   }
