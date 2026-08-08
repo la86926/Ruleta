@@ -120,24 +120,54 @@
   let soundEnabled=localStorage.getItem(SOUND_KEY)!=='0';
   if(soundToggle){soundToggle.checked=soundEnabled;soundToggle.addEventListener('change',()=>{soundEnabled=soundToggle.checked;localStorage.setItem(SOUND_KEY,soundEnabled?'1':'0');if(!soundEnabled)stopSpinSound()})}
 
-  let audioCtx=null,tickTimer=null,tickStopTimer=null;
+  let audioCtx=null,tickTimer=null,spinSoundToken=0;
   function ensureAudio(){
     if(!soundEnabled)return null;
     try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}catch(_){return null}
   }
-  function tone(freq,duration=0.025,gain=.025,type='sine',delay=0){
+  function tone(freq,duration=0.025,gain=.035,type='sine',delay=0){
     const ac=ensureAudio();if(!ac)return;
     const osc=ac.createOscillator(),amp=ac.createGain(),start=ac.currentTime+delay;
     osc.type=type;osc.frequency.setValueAtTime(freq,start);amp.gain.setValueAtTime(0,start);amp.gain.linearRampToValueAtTime(gain,start+.004);amp.gain.exponentialRampToValueAtTime(.0001,start+duration);
     osc.connect(amp);amp.connect(ac.destination);osc.start(start);osc.stop(start+duration+.01);
   }
-  function tick(){tone(760,0.022,.018,'triangle')}
+
   function startSpinSound(){
     if(!soundEnabled||values().length<2)return;
-    stopSpinSound();ensureAudio();tick();tickTimer=setInterval(tick,92);tickStopTimer=setTimeout(stopSpinSound,6500);
+    stopSpinSound();
+    ensureAudio();
+    const token=++spinSoundToken;
+    const started=performance.now();
+    const audibleDuration=3600;
+
+    function pulse(){
+      if(token!==spinSoundToken||!soundEnabled)return;
+      const elapsed=performance.now()-started;
+      if(elapsed>=audibleDuration){stopSpinSound();return}
+
+      const p=Math.min(1,elapsed/audibleDuration);
+      const interval=72+210*p*p;
+      const gain=.044-(.020*p);
+      const frequency=840-(170*p);
+      tone(frequency,0.026,gain,'triangle');
+      tickTimer=setTimeout(pulse,interval);
+    }
+
+    pulse();
   }
-  function stopSpinSound(){if(tickTimer){clearInterval(tickTimer);tickTimer=null}if(tickStopTimer){clearTimeout(tickStopTimer);tickStopTimer=null}}
-  function winnerSound(){if(!soundEnabled)return;stopSpinSound();tone(660,.11,.035,'sine',0);tone(880,.13,.035,'sine',.09);tone(1100,.16,.03,'sine',.19)}
+
+  function stopSpinSound(){
+    spinSoundToken++;
+    if(tickTimer){clearTimeout(tickTimer);tickTimer=null}
+  }
+
+  function winnerSound(){
+    if(!soundEnabled)return;
+    stopSpinSound();
+    tone(660,.12,.058,'sine',0);
+    tone(880,.14,.056,'sine',.09);
+    tone(1100,.17,.052,'sine',.19);
+  }
 
   function confirmReset(){return window.confirm('¿Reiniciar la ruleta? Se borrarán la lista actual, el historial y los valores ocultos.')}
   resetBtn?.addEventListener('click',event=>{
