@@ -53,7 +53,3 @@
   72%{transform:scale(.997)}
   100%{transform:scale(1)}
 }
-
-@media(prefers-reduced-motion:reduce){
-  .result-card.show,.result-card.winner-pop .result-value,.result-card.is-hiding,.wheel-wrap.is-removing .hub,.wheel-wrap.is-gap,.wheel-wrap.is-gap .hub,.wheel-wrap.is-closing,.wheel-wrap.is-closing .pointer,.wheel-wrap.just-settled{animation:none!important}
-}
