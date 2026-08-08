@@ -1,10 +1,12 @@
 .result-card.show{animation:resultReveal .55s cubic-bezier(.2,.85,.22,1.15)}
-.result-card.winner-pop .result-value{animation:winnerPop .72s cubic-bezier(.18,.89,.32,1.28)}
-.result-card.is-hiding{animation:resultBreathe .9s ease-in-out infinite alternate}
-.wheel-wrap.is-removing .hub{animation:hubBreathe .76s ease-in-out}
-.wheel-wrap.is-closing{animation:wheelClose .82s cubic-bezier(.22,.9,.2,1)}
-.wheel-wrap.is-closing .pointer{animation:pointerTick .24s ease-in-out 3}
-.wheel-wrap.just-settled{animation:wheelSettle .58s cubic-bezier(.2,.9,.2,1.12)}
+.result-card.winner-pop .result-value{animation:winnerPop .82s cubic-bezier(.18,.89,.32,1.28)}
+.result-card.is-hiding{animation:resultBreathe 1.4s ease-in-out infinite alternate}
+.wheel-wrap.is-removing .hub{animation:hubBreathe 1.85s ease-in-out}
+.wheel-wrap.is-gap{animation:gapHold .95s ease-in-out}
+.wheel-wrap.is-gap .hub{animation:hubGap .95s ease-in-out}
+.wheel-wrap.is-closing{animation:wheelClose 1.65s cubic-bezier(.22,.9,.2,1)}
+.wheel-wrap.is-closing .pointer{animation:pointerTick .42s ease-in-out 4}
+.wheel-wrap.just-settled{animation:wheelSettle .82s cubic-bezier(.2,.9,.2,1.12)}
 .switch input:disabled+span{opacity:.5;cursor:default}
 
 @keyframes resultReveal{
@@ -22,24 +24,36 @@
   to{box-shadow:0 14px 30px rgba(10,132,255,.12);transform:translateY(-2px)}
 }
 @keyframes hubBreathe{
-  0%,100%{transform:scale(1)}
-  48%{transform:scale(.94)}
+  0%{transform:scale(1)}
+  42%{transform:scale(.965)}
+  72%{transform:scale(.94)}
+  100%{transform:scale(.94)}
+}
+@keyframes gapHold{
+  0%,100%{transform:scale(1);filter:drop-shadow(0 16px 22px rgba(0,0,0,.13))}
+  50%{transform:scale(.997);filter:drop-shadow(0 18px 26px rgba(0,0,0,.16))}
+}
+@keyframes hubGap{
+  0%,100%{transform:scale(.94)}
+  50%{transform:scale(.925)}
 }
 @keyframes wheelClose{
-  0%{transform:scale(1)}
-  48%{transform:scale(.985)}
+  0%{transform:scale(.997)}
+  38%{transform:scale(.985)}
+  72%{transform:scale(1.006)}
   100%{transform:scale(1)}
 }
 @keyframes pointerTick{
   0%,100%{transform:translateX(-50%) rotate(0)}
-  50%{transform:translateX(-50%) rotate(4deg)}
+  50%{transform:translateX(-50%) rotate(5deg)}
 }
 @keyframes wheelSettle{
-  0%{transform:scale(.992)}
-  45%{transform:scale(1.012)}
+  0%{transform:scale(.99)}
+  45%{transform:scale(1.014)}
+  72%{transform:scale(.997)}
   100%{transform:scale(1)}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .result-card.show,.result-card.winner-pop .result-value,.result-card.is-hiding,.wheel-wrap.is-removing .hub,.wheel-wrap.is-closing,.wheel-wrap.is-closing .pointer,.wheel-wrap.just-settled{animation:none!important}
+  .result-card.show,.result-card.winner-pop .result-value,.result-card.is-hiding,.wheel-wrap.is-removing .hub,.wheel-wrap.is-gap,.wheel-wrap.is-gap .hub,.wheel-wrap.is-closing,.wheel-wrap.is-closing .pointer,.wheel-wrap.just-settled{animation:none!important}
 }
