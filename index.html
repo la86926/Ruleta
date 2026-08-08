@@ -4,22 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f7f8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ruleta" />
   <title>Ruleta aleatoria</title>
-  <link rel="icon" type="image/png" sizes="256x256" href="favicon.png?v=20260808-2" />
-  <link rel="shortcut icon" type="image/png" href="favicon.png?v=20260808-2" />
-  <link rel="apple-touch-icon" sizes="256x256" href="apple-touch-icon.png?v=20260808-2" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260808-2" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="motion.css" />
-  <link rel="stylesheet" href="enhancements.css" />
+  <link rel="icon" type="image/png" sizes="256x256" href="favicon.png?v=20260808-3" />
+  <link rel="shortcut icon" type="image/png" href="favicon.png?v=20260808-3" />
+  <link rel="apple-touch-icon" sizes="256x256" href="apple-touch-icon.png?v=20260808-3" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260808-3" />
+  <link rel="stylesheet" href="styles.css?v=20260808-3" />
+  <link rel="stylesheet" href="motion.css?v=20260808-3" />
+  <link rel="stylesheet" href="enhancements.css?v=20260808-3" />
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="favicon.png?v=20260808-2" alt="" /></div><h1>Ruleta aleatoria</h1></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="favicon.png?v=20260808-3" alt="" /></div><h1>Ruleta aleatoria</h1></div>
       <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
     </header>
 
@@ -30,7 +33,7 @@
           <div class="wheel-wrap" id="wheelWrap">
             <canvas id="wheel" width="900" height="900" aria-label="Ruleta"></canvas>
             <div class="pointer" aria-hidden="true"></div>
-            <div class="hub" aria-hidden="true"><img src="favicon.png?v=20260808-2" alt="" /></div>
+            <div class="hub" aria-hidden="true"><img src="favicon.png?v=20260808-3" alt="" /></div>
             <div class="empty-wheel" id="emptyWheel">Agrega al menos 2 opciones para girar la ruleta.</div>
           </div>
           <div class="spin-hint" id="spinHint">Haz clic en la rueda o presiona <span class="kbd">Espacio</span></div>
@@ -97,7 +100,27 @@
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js"></script>
-  <script src="enhancements.js"></script>
+  <script>
+    (() => {
+      try {
+        const palette=['#FF8A80','#82B1FF','#B9F6CA','#FFE0B2','#E1BEE7','#80DEEA','#FFD180','#B39DDB','#A5D6A7','#F8BBD0','#90CAF9','#FFF59D'];
+        const keys=['ruleta-state-v4','ruleta-state-v3','ruleta-state-v2','ruleta-state-v1'];
+        for (const key of keys) {
+          const raw=localStorage.getItem(key);
+          if(!raw) continue;
+          const saved=JSON.parse(raw);
+          const normalize=(list,offset=0)=>Array.isArray(list)?list.map((v,i)=>({label:typeof v==='string'?v:String(v?.label??''),color:palette[(i+offset)%palette.length]})):list;
+          if(Array.isArray(saved.items)) saved.items=normalize(saved.items);
+          if(Array.isArray(saved.hidden)) saved.hidden=normalize(saved.hidden,(saved.items?.length||0));
+          if(typeof saved.autoHide!=='boolean') saved.autoHide=true;
+          localStorage.setItem('ruleta-state-v4',JSON.stringify(saved));
+          if(key!=='ruleta-state-v4') localStorage.removeItem(key);
+          break;
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <script src="app.js?v=20260808-3"></script>
+  <script src="enhancements.js?v=20260808-3"></script>
 </body>
 </html>
