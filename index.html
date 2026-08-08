@@ -11,18 +11,19 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ruleta" />
   <title>Ruleta aleatoria</title>
-  <link rel="icon" type="image/png" sizes="512x512" href="apuesta.png?v=20260808-8" />
-  <link rel="shortcut icon" type="image/png" href="apuesta.png?v=20260808-8" />
-  <link rel="apple-touch-icon" sizes="512x512" href="apuesta.png?v=20260808-8" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260808-8" />
-  <link rel="stylesheet" href="styles.css?v=20260808-8" />
-  <link rel="stylesheet" href="motion.css?v=20260808-8" />
-  <link rel="stylesheet" href="enhancements.css?v=20260808-8" />
+  <link rel="icon" type="image/png" sizes="512x512" href="apuesta.png?v=20260808-9" />
+  <link rel="shortcut icon" type="image/png" href="apuesta.png?v=20260808-9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="apuesta.png?v=20260808-9" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260808-9" />
+  <link rel="stylesheet" href="styles.css?v=20260808-9" />
+  <link rel="stylesheet" href="motion.css?v=20260808-9" />
+  <link rel="stylesheet" href="enhancements.css?v=20260808-9" />
+  <link rel="stylesheet" href="features.css?v=20260808-9" />
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="apuesta.png?v=20260808-8" alt="" /></div><h1>Ruleta aleatoria</h1></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="apuesta.png?v=20260808-9" alt="" /></div><h1>Ruleta aleatoria</h1></div>
       <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
     </header>
 
@@ -33,7 +34,7 @@
           <div class="wheel-wrap" id="wheelWrap">
             <canvas id="wheel" width="900" height="900" aria-label="Ruleta"></canvas>
             <div class="pointer" aria-hidden="true"></div>
-            <div class="hub" aria-hidden="true"><img src="apuesta.png?v=20260808-8" alt="" /></div>
+            <div class="hub" aria-hidden="true"><img src="apuesta.png?v=20260808-9" alt="" /></div>
             <div class="empty-wheel" id="emptyWheel">Agrega al menos 2 opciones para girar la ruleta.</div>
           </div>
           <div class="spin-hint" id="spinHint">Haz clic en la rueda o presiona <span class="kbd">Espacio</span></div>
@@ -64,6 +65,7 @@
 10
 11
 12</textarea>
+          <p class="duplicate-warning" id="duplicateWarning" role="status"></p>
 
           <div class="main-spin-row">
             <button class="btn btn-primary" id="mainSpinBtn">Iniciar</button>
@@ -71,7 +73,13 @@
           </div>
 
           <div class="secondary-actions"><button class="btn btn-soft" id="clearBtn">Limpiar</button><button class="btn btn-soft" id="restoreBtn" disabled>Mostrar ocultos (0)</button></div>
+          <div class="feature-actions">
+            <button class="btn btn-soft" id="mixListBtn">Mezclar lista</button>
+            <button class="btn btn-soft" id="shareBtn">Compartir</button>
+            <button class="btn btn-soft" id="lockEditBtn" aria-pressed="false">Bloquear edición</button>
+          </div>
           <div class="toggle-row"><div class="toggle-copy"><strong>Esconder al terminar</strong><span>El valor ganador desaparece de la siguiente tirada.</span></div><label class="switch" aria-label="Esconder ganadores automáticamente"><input type="checkbox" id="autoHideToggle" checked /><span></span></label></div>
+          <div class="toggle-row"><div class="toggle-copy"><strong>Sonido</strong><span>Sonido al girar y al mostrar el ganador.</span></div><label class="switch" aria-label="Activar sonido de la ruleta"><input type="checkbox" id="soundToggle" checked /><span></span></label></div>
 
           <div class="legacy-control" aria-hidden="true">
             <button id="spinBtn" type="button">Iniciar</button>
@@ -87,7 +95,7 @@
         </section>
 
         <section class="panel history-panel">
-          <div class="history-title"><span>Historial</span><button id="clearHistoryBtn">Borrar</button></div>
+          <div class="history-title"><span>Historial</span><div class="history-actions"><button id="copyHistoryBtn">Copiar</button><button id="clearHistoryBtn">Borrar</button></div></div>
           <p class="history-note">El resultado más reciente queda al final del historial.</p>
           <div class="history" id="history"><span class="history-empty">Aún no hay resultados.</span></div>
         </section>
@@ -121,7 +129,8 @@
       } catch (_) {}
     })();
   </script>
-  <script src="app.js?v=20260808-8"></script>
-  <script src="enhancements.js?v=20260808-8"></script>
+  <script src="app.js?v=20260808-9"></script>
+  <script src="enhancements.js?v=20260808-9"></script>
+  <script src="features.js?v=20260808-9"></script>
 </body>
 </html>
