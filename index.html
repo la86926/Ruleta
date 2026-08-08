@@ -14,6 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest?v=20260808-2" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="motion.css" />
+  <link rel="stylesheet" href="enhancements.css" />
 </head>
 <body>
   <main class="app">
@@ -38,7 +39,15 @@
 
       <aside class="side">
         <section class="panel editor-panel">
-          <div class="primary-actions"><button class="btn btn-primary" id="spinBtn">Iniciar</button><button class="btn btn-danger-soft" id="resetBtn">Reiniciar</button></div>
+          <div class="number-maker range-maker">
+            <div class="number-maker-head"><strong>Agregar números</strong><span>Máximo 250</span></div>
+            <div class="range-maker-grid">
+              <label class="range-field">Desde<input id="rangeStartInput" type="number" inputmode="numeric" min="1" max="250" step="1" value="1" aria-label="Número inicial" /></label>
+              <label class="range-field">Hasta<input id="rangeEndInput" type="number" inputmode="numeric" min="1" max="250" step="1" value="12" aria-label="Número final" /></label>
+              <button class="btn btn-soft" id="rangeGenerateBtn">Crear lista</button>
+            </div>
+          </div>
+
           <div class="editor-label"><span>Opciones · una por línea</span><span id="itemCount">12 opciones</span></div>
           <textarea id="itemsInput" spellcheck="false" aria-label="Opciones de la ruleta">1
 2
@@ -53,17 +62,34 @@
 11
 12</textarea>
 
-          <div class="number-maker">
-            <div class="number-maker-head"><strong>Números rápidos</strong><span>Hasta 250</span></div>
-            <div class="number-maker-row"><input id="numberCountInput" type="number" inputmode="numeric" min="2" max="250" step="1" placeholder="Ej.: 32, 127, 250" aria-label="Cantidad de números" /><button class="btn btn-soft" id="generateNumbersBtn">Generar 1–N</button></div>
+          <div class="main-spin-row">
+            <button class="btn btn-primary" id="mainSpinBtn">Iniciar</button>
+            <button class="btn btn-danger-soft" id="resetBtn">Reiniciar</button>
           </div>
 
           <div class="secondary-actions"><button class="btn btn-soft" id="clearBtn">Limpiar</button><button class="btn btn-soft" id="restoreBtn" disabled>Mostrar ocultos (0)</button></div>
           <div class="toggle-row"><div class="toggle-copy"><strong>Esconder al terminar</strong><span>El valor ganador desaparece de la siguiente tirada.</span></div><label class="switch" aria-label="Esconder ganadores automáticamente"><input type="checkbox" id="autoHideToggle" checked /><span></span></label></div>
+
+          <div class="legacy-control" aria-hidden="true">
+            <button id="spinBtn" type="button">Iniciar</button>
+            <input id="numberCountInput" type="number" value="12" />
+            <button id="generateNumbersBtn" type="button">Generar</button>
+          </div>
         </section>
 
-        <section class="result-card" id="resultCard" aria-live="polite"><div class="result-kicker">Resultado</div><div class="result-value" id="resultValue"></div><div class="result-actions"><button class="btn btn-primary" id="spinAgainBtn">Girar otra vez</button><button class="btn btn-soft" id="hideWinnerBtn">Esconder</button></div></section>
-        <section class="panel"><div class="history-title"><span>Historial</span><button id="clearHistoryBtn">Borrar</button></div><div class="history" id="history"><span class="history-empty">Aún no hay resultados.</span></div></section>
+        <section class="result-card" id="resultCard" aria-live="polite">
+          <div class="result-kicker">Resultado</div>
+          <div class="result-value" id="resultValue"></div>
+          <div class="result-actions"><button class="btn btn-soft" id="hideWinnerBtn">Esconder</button></div>
+        </section>
+
+        <section class="panel history-panel">
+          <div class="history-title"><span>Historial</span><button id="clearHistoryBtn">Borrar</button></div>
+          <p class="history-note">El resultado más reciente queda al final del historial.</p>
+          <div class="history" id="history"><span class="history-empty">Aún no hay resultados.</span></div>
+        </section>
+
+        <button class="legacy-control" id="spinAgainBtn" type="button" aria-hidden="true">Girar otra vez</button>
       </aside>
     </section>
 
@@ -71,37 +97,7 @@
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    (() => {
-      try {
-        const marker = 'ruleta-autohide-default-20260808';
-        if (!localStorage.getItem(marker)) {
-          for (const key of ['ruleta-state-v4', 'ruleta-state-v3', 'ruleta-state-v2', 'ruleta-state-v1']) {
-            const raw = localStorage.getItem(key);
-            if (!raw) continue;
-            const saved = JSON.parse(raw);
-            saved.autoHide = true;
-            localStorage.setItem(key, JSON.stringify(saved));
-            break;
-          }
-          localStorage.setItem(marker, '1');
-        }
-      } catch (_) {}
-    })();
-  </script>
   <script src="app.js"></script>
-  <script>
-    (() => {
-      const resetBtn = document.getElementById('resetBtn');
-      const autoHideToggle = document.getElementById('autoHideToggle');
-      if (!resetBtn || !autoHideToggle) return;
-      resetBtn.addEventListener('click', () => {
-        setTimeout(() => {
-          autoHideToggle.checked = true;
-          autoHideToggle.dispatchEvent(new Event('change'));
-        }, 0);
-      });
-    })();
-  </script>
+  <script src="enhancements.js"></script>
 </body>
 </html>
