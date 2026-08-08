@@ -1,0 +1,12 @@
+.feature-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.feature-actions .btn{min-width:0;white-space:nowrap}
+.duplicate-warning{display:none;margin:7px 2px 0;color:#9a5a00;font-size:12px;line-height:1.35}
+.duplicate-warning.show{display:block}
+.history-title{gap:10px}
+.history-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.history-actions button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:4px 2px;cursor:pointer}
+.history-actions button:hover{color:var(--text)}
+.edition-locked #titleInput,.edition-locked #itemsInput,.edition-locked #rangeStartInput,.edition-locked #rangeEndInput{opacity:.65}
+.edition-locked .preset,.edition-locked #clearBtn,.edition-locked #restoreBtn,.edition-locked #mixListBtn,.edition-locked #rangeGenerateBtn{opacity:.52;cursor:not-allowed}
+#lockEditBtn.is-locked{font-weight:700}
+@media(max-width:520px){.feature-actions{grid-template-columns:1fr 1fr}.feature-actions #lockEditBtn{grid-column:1/-1}.history-actions{gap:6px}}
