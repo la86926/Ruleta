@@ -120,53 +120,92 @@
   let soundEnabled=localStorage.getItem(SOUND_KEY)!=='0';
   if(soundToggle){soundToggle.checked=soundEnabled;soundToggle.addEventListener('change',()=>{soundEnabled=soundToggle.checked;localStorage.setItem(SOUND_KEY,soundEnabled?'1':'0');if(!soundEnabled)stopSpinSound()})}
 
-  let audioCtx=null,tickTimer=null,spinSoundToken=0;
+  let audioCtx=null,soundRaf=null,spinSoundToken=0,lastSectorKey=null,lastTickAt=0,spinStartedAt=0;
+  const SOUND_PALETTE=[
+    [255,138,128],[130,177,255],[185,246,202],[255,224,178],
+    [225,190,231],[128,222,234],[255,209,128],[179,157,219],
+    [165,214,167],[248,187,208],[144,202,249],[255,245,157]
+  ];
+
   function ensureAudio(){
     if(!soundEnabled)return null;
     try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}catch(_){return null}
   }
-  function tone(freq,duration=0.025,gain=.035,type='sine',delay=0){
+  function tone(freq,duration=0.025,gain=.04,type='sine',delay=0){
     const ac=ensureAudio();if(!ac)return;
     const osc=ac.createOscillator(),amp=ac.createGain(),start=ac.currentTime+delay;
     osc.type=type;osc.frequency.setValueAtTime(freq,start);amp.gain.setValueAtTime(0,start);amp.gain.linearRampToValueAtTime(gain,start+.004);amp.gain.exponentialRampToValueAtTime(.0001,start+duration);
     osc.connect(amp);amp.connect(ac.destination);osc.start(start);osc.stop(start+duration+.01);
   }
 
+  function sectorUnderPointer(){
+    if(!wheel||!wheel.width)return null;
+    try{
+      const c=wheel.width/2,r=wheel.width*.485;
+      const x=Math.max(0,Math.min(wheel.width-1,Math.round(c)));
+      const y=Math.max(0,Math.min(wheel.height-1,Math.round(c-r*.82)));
+      const d=wheel.getContext('2d').getImageData(x,y,1,1).data;
+      if(d[3]<80)return null;
+      let best=0,bestDist=Infinity;
+      for(let i=0;i<SOUND_PALETTE.length;i++){
+        const p=SOUND_PALETTE[i],dr=d[0]-p[0],dg=d[1]-p[1],db=d[2]-p[2],dist=dr*dr+dg*dg+db*db;
+        if(dist<bestDist){bestDist=dist;best=i}
+      }
+      return best;
+    }catch(_){return null}
+  }
+
+  function playSyncedTick(now){
+    const gap=lastTickAt?now-lastTickAt:45;
+    const slow=Math.max(0,Math.min(1,(gap-45)/430));
+    const frequency=880-220*slow;
+    const gain=.058-.014*slow;
+    tone(frequency,.027,gain,'triangle');
+    lastTickAt=now;
+  }
+
   function startSpinSound(){
     if(!soundEnabled||values().length<2)return;
-    stopSpinSound();
-    ensureAudio();
+    stopSpinSound();ensureAudio();
     const token=++spinSoundToken;
-    const started=performance.now();
-    const audibleDuration=3600;
+    spinStartedAt=performance.now();
+    lastSectorKey=sectorUnderPointer();
+    lastTickAt=0;
+    playSyncedTick(spinStartedAt);
 
-    function pulse(){
+    function followWheel(now){
       if(token!==spinSoundToken||!soundEnabled)return;
-      const elapsed=performance.now()-started;
-      if(elapsed>=audibleDuration){stopSpinSound();return}
+      if(now-spinStartedAt>6200){stopSpinSound();return}
 
-      const p=Math.min(1,elapsed/audibleDuration);
-      const interval=72+210*p*p;
-      const gain=.044-(.020*p);
-      const frequency=840-(170*p);
-      tone(frequency,0.026,gain,'triangle');
-      tickTimer=setTimeout(pulse,interval);
+      const currentKey=sectorUnderPointer();
+      if(currentKey!==null){
+        if(lastSectorKey===null){
+          lastSectorKey=currentKey;
+        }else if(currentKey!==lastSectorKey){
+          // El golpe solo ocurre cuando un sector REAL cruza el puntero.
+          // Por eso la separación entre golpes aumenta exactamente cuando la rueda desacelera.
+          if(now-lastTickAt>=28)playSyncedTick(now);
+          lastSectorKey=currentKey;
+        }
+      }
+      soundRaf=requestAnimationFrame(followWheel);
     }
 
-    pulse();
+    soundRaf=requestAnimationFrame(followWheel);
   }
 
   function stopSpinSound(){
     spinSoundToken++;
-    if(tickTimer){clearTimeout(tickTimer);tickTimer=null}
+    if(soundRaf){cancelAnimationFrame(soundRaf);soundRaf=null}
+    lastSectorKey=null;lastTickAt=0;
   }
 
   function winnerSound(){
     if(!soundEnabled)return;
     stopSpinSound();
-    tone(660,.12,.058,'sine',0);
-    tone(880,.14,.056,'sine',.09);
-    tone(1100,.17,.052,'sine',.19);
+    tone(660,.12,.062,'sine',0);
+    tone(880,.14,.060,'sine',.09);
+    tone(1100,.17,.056,'sine',.19);
   }
 
   function confirmReset(){return window.confirm('¿Reiniciar la ruleta? Se borrarán la lista actual, el historial y los valores ocultos.')}
