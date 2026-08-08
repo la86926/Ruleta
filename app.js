@@ -9,30 +9,30 @@
   const STORAGE_KEY='ruleta-state-v7';
 
   const PRESETS={
-    'Rueda predeterminada':DEFAULT_ITEMS,
+    'Números 1–12':DEFAULT_ITEMS,
     'Sí / No':['Sí','No'],
     'Ciudades':['Lima','Piura','Cusco','Arequipa','Trujillo','Chiclayo','Iquitos','Tacna'],
     'Animales':['Perro','Gato','León','Elefante','Delfín','Águila','Conejo','Tigre'],
     'Emojis':['😀','😂','😍','😎','🤔','🥳','😴','🤩','🙃','🔥'],
-    'Opciones de comida':['Pizza','Hamburguesa','Tacos','Ceviche','Pasta','Pollo','Sushi','Ensalada'],
+    'Comidas':['Pizza','Hamburguesa','Tacos','Ceviche','Pasta','Pollo','Sushi','Ensalada'],
     'Carnes':['Pollo','Res','Cerdo','Pavo','Pescado','Cordero'],
     'Frutas':['Mango','Manzana','Plátano','Fresa','Piña','Uva','Sandía','Naranja'],
     'Vegetales':['Zanahoria','Brócoli','Tomate','Pepino','Espinaca','Pimiento','Lechuga'],
     'Postres':['Helado','Torta','Brownie','Flan','Gelatina','Cheesecake','Galletas'],
     'Actividades':['Caminar','Leer','Cocinar','Ver una película','Escuchar música','Dibujar','Ejercicio'],
-    'Actividades con amigos':['Karaoke','Película','Juegos de mesa','Paseo','Cocinar juntos','Fotos','Trivia'],
-    'Género de película':['Acción','Comedia','Drama','Terror','Ciencia ficción','Romance','Animación','Suspenso'],
-    'Charadas / Pictionary':['Animal','Película','Profesión','Objeto','Deporte','Lugar','Personaje','Acción'],
-    '¿Qué prefieres?':['Viajar','Quedarte en casa','Dulce','Salado','Playa','Montaña','Mañana','Noche'],
-    'Yo nunca':['Viajes','Comida','Escuela','Trabajo','Música','Películas','Tecnología','Amistad'],
-    'Dos verdades y una mentira':['Persona 1','Persona 2','Persona 3','Persona 4','Persona 5','Persona 6'],
+    'Planes con amigos':['Karaoke','Película','Juegos de mesa','Paseo','Cocinar juntos','Fotos','Trivia'],
+    'Géneros de películas':['Acción','Comedia','Drama','Terror','Ciencia ficción','Romance','Animación','Suspenso'],
+    'Categorías para mímica':['Animal','Película','Profesión','Objeto','Deporte','Lugar','Personaje','Acción'],
+    'Preferencias':['Viajar','Quedarte en casa','Dulce','Salado','Playa','Montaña','Mañana','Noche'],
+    'Temas personales':['Viajes','Comida','Escuela','Trabajo','Música','Películas','Tecnología','Amistad'],
+    'Participantes':['Persona 1','Persona 2','Persona 3','Persona 4','Persona 5','Persona 6'],
     'Categorías':['Nombre','Animal','Ciudad','Comida','Objeto','Profesión','Color','Marca'],
-    'Adivina la canción':['Rock','Pop','Balada','Salsa','Cumbia','Reggaetón','Clásica','Años 80'],
-    'Búsqueda del tesoro':['Algo rojo','Algo pequeño','Algo suave','Algo antiguo','Algo brillante','Algo de madera','Algo redondo'],
+    'Géneros musicales':['Rock','Pop','Balada','Salsa','Cumbia','Reggaetón','Clásica','Años 80'],
+    'Objetos para buscar':['Algo rojo','Algo pequeño','Algo suave','Algo antiguo','Algo brillante','Algo de madera','Algo redondo'],
     'Orden de exposición':['Equipo 1','Equipo 2','Equipo 3','Equipo 4','Equipo 5','Equipo 6'],
     'Números 1–20':Array.from({length:20},(_,i)=>String(i+1)),
     'Colores':['Rojo','Azul','Verde','Amarillo','Morado','Naranja','Rosa','Negro'],
-    'Preguntas rompehielo':['Viajes','Música','Comida','Películas','Metas','Hobbies','Infancia','Tecnología'],
+    'Temas de conversación':['Viajes','Música','Comida','Películas','Metas','Hobbies','Infancia','Tecnología'],
     'Tareas del hogar':['Barrer','Trapear','Lavar platos','Ordenar','Sacar basura','Limpiar mesa','Cocinar'],
     'Días de la semana':['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],
     'Meses':['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
@@ -103,10 +103,8 @@
     ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,opacity));ctx.translate(center,center);ctx.rotate(angle);let fontSize=baseFontSize,maxWidth=Math.max(34,radius*.43),safe=label.length>32?`${label.slice(0,30)}…`:label;
     ctx.font=`700 ${fontSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`;while(ctx.measureText(safe).width>maxWidth&&fontSize>7){fontSize-=1;ctx.font=`700 ${fontSize}px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif`}
     ctx.fillStyle='#111114';ctx.textAlign='center';ctx.textBaseline='middle';
-    const normalized=((angle%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
-    // El límite superior se incluye para que el ganador no cambie de orientación justo al detenerse.
-    const flip=normalized>Math.PI/2&&normalized<=Math.PI*1.5;
-    if(flip)ctx.rotate(Math.PI);ctx.fillText(safe,flip?-radius*.64:radius*.64,0,maxWidth);ctx.restore();
+    // La etiqueta conserva siempre la orientación propia de su sector. No hay giros de 180° independientes.
+    ctx.fillText(safe,radius*.64,0,maxWidth);ctx.restore();
   }
 
   function drawClosingWheel(scene,center,radius,size){
@@ -118,8 +116,6 @@
       drawSegment(item,oldStart+(newStart-oldStart)*ease,oldEnd+(newEnd-oldEnd)*ease,center,radius,size,fontSize,newIndex%labelStep===0,1);
     }
 
-    // El hueco se calcula con los bordes REALES de los dos sectores vecinos.
-    // Así el contorno acompaña exactamente el cierre y nunca se separa del recorte.
     if(t<.995){
       let leftBoundary,rightBoundary;
       if(removedIndex===0){
@@ -152,14 +148,15 @@
     if(spinning)return;if(transitioning)finishTransitionNow();if(items.length<2){showToast('Agrega al menos 2 opciones para girar.');return}
     animationToken++;spinning=true;lastWinner=null;pendingHideId=null;resultCard.classList.remove('show','winner-pop','is-hiding');updateUI();
     const winnerIndex=randomIndex(items.length),winner=items[winnerIndex],arc=Math.PI*2/items.length,centerAngleBase=winnerIndex*arc+arc/2,desired=mod(-centerAngleBase,Math.PI*2),current=mod(rotation,Math.PI*2),delta=mod(desired-current,Math.PI*2),extraTurns=6+randomIndex(3),startRotation=rotation,targetRotation=rotation+extraTurns*Math.PI*2+delta,duration=4200+randomIndex(700),startTime=performance.now(),ease=t=>1-Math.pow(1-t,5);
-    function frame(now){const t=Math.min(1,(now-startTime)/duration);rotation=startRotation+(targetRotation-startRotation)*ease(t);drawWheel();if(t<1)raf=requestAnimationFrame(frame);else{rotation=mod(targetRotation,Math.PI*2);spinning=false;hasSpun=true;wheelWrap.classList.add('repeat-mode');lastWinner=winner;history.unshift({label:winner.label,at:Date.now()});history=history.slice(0,24);resultValue.textContent=winner.label;resultCard.classList.add('show','winner-pop');updateUI();persist();presentWinner(winner)}}
+    function frame(now){const t=Math.min(1,(now-startTime)/duration);rotation=startRotation+(targetRotation-startRotation)*ease(t);drawWheel();if(t<1)raf=requestAnimationFrame(frame);else{
+      // Se conserva exactamente el mismo ángulo del último fotograma para que ninguna etiqueta cambie de orientación al detenerse.
+      rotation=targetRotation;spinning=false;hasSpun=true;wheelWrap.classList.add('repeat-mode');lastWinner=winner;history.unshift({label:winner.label,at:Date.now()});history=history.slice(0,24);resultValue.textContent=winner.label;resultCard.classList.add('show','winner-pop');updateUI();persist();presentWinner(winner)}}
     raf=requestAnimationFrame(frame);
   }
 
   async function presentWinner(winner){
     if(!autoHideToggle.checked||!items.some(i=>i.id===winner.id)){transitioning=false;pendingHideId=null;updateUI();return}
     const token=++animationToken;transitioning=true;pendingHideId=winner.id;updateUI();
-    // Breve pausa sin redibujar ni girar el número ganador.
     const ready=await wait(300,token);if(!ready||token!==animationToken)return;await animateRemoveInternal(winner.id,false,token,true);
   }
   function startFirstSpin(){spin()}
@@ -182,7 +179,7 @@
   function renderHistory(){historyEl.innerHTML='';if(!history.length){const e=document.createElement('span');e.className='history-empty';e.textContent='Aún no hay resultados.';historyEl.appendChild(e);return}history.slice(0,10).forEach(entry=>{const chip=document.createElement('span');chip.className='history-chip';chip.textContent=entry.label;chip.title=entry.label;historyEl.appendChild(chip)})}
 
   function loadValues(values,title){if(spinning)return;if(transitioning)finishTransitionNow();animationToken++;colorCursor=0;items=values.slice(0,250).map(makeItem);hiddenItems=[];history=[];rotation=0;resetSpinState();titleInput.value=title;syncTextarea();updateUI();persist();window.scrollTo({top:0,behavior:'smooth'})}
-  function applyPreset(name){const values=PRESETS[name];if(!values)return;loadValues(values,name==='Rueda predeterminada'?'La Ruleta Aleatoria':name)}
+  function applyPreset(name){const values=PRESETS[name];if(!values)return;loadValues(values,name==='Números 1–12'?'La Ruleta Aleatoria':name)}
   function renderPresets(){Object.keys(PRESETS).forEach(name=>{const b=document.createElement('button');b.className='preset';b.type='button';b.textContent=name;b.addEventListener('click',()=>applyPreset(name));presetGrid.appendChild(b)})}
   function generateNumbers(){if(isBusy())return;let n=Number.parseInt(numberCountInput.value,10);if(!Number.isFinite(n)){showToast('Escribe una cantidad entre 2 y 250.');numberCountInput.focus();return}n=Math.max(2,Math.min(250,n));numberCountInput.value=String(n);loadValues(Array.from({length:n},(_,i)=>String(i+1)),`Números 1–${n}`);showToast(`Se generaron ${n} números.`)}
 
@@ -202,7 +199,6 @@
 
   async function toggleFullscreen(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(_){showToast('El navegador no permitió activar pantalla completa.')}}
 
-  // Se reconstruye inmediatamente: evita que una lista nueva gire antes de haber recibido sus colores.
   itemsInput.addEventListener('input',rebuildFromInput);
   titleInput.addEventListener('input',persist);autoHideToggle.addEventListener('change',persist);spinBtn.addEventListener('click',startFirstSpin);spinAgainBtn.addEventListener('click',spin);canvas.addEventListener('click',startFirstSpin);resetBtn.addEventListener('click',resetAll);clearBtn.addEventListener('click',clearItems);restoreBtn.addEventListener('click',restoreHidden);generateNumbersBtn.addEventListener('click',generateNumbers);numberCountInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();generateNumbers()}});hideWinnerBtn.addEventListener('click',()=>{if(lastWinner)animateHideItemById(lastWinner.id)});clearHistoryBtn.addEventListener('click',()=>{history=[];renderHistory();persist()});fullscreenBtn.addEventListener('click',toggleFullscreen);
   document.addEventListener('keydown',event=>{const tag=document.activeElement?.tagName;if(event.code==='Space'&&tag!=='TEXTAREA'&&tag!=='INPUT'&&tag!=='BUTTON'){event.preventDefault();spin()}if((event.key==='r'||event.key==='R')&&tag!=='TEXTAREA'&&tag!=='INPUT'){resetAll()}});
