@@ -1,0 +1,15 @@
+.legacy-control{display:none!important}
+.range-maker{margin-top:0;margin-bottom:14px}
+.range-maker .number-maker-head{margin-bottom:10px}
+.range-maker-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.range-field{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:12px;font-weight:600}
+.range-field input{width:100%;min-width:0;height:44px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:0 12px;color:var(--text)}
+.main-spin-row{display:grid;grid-template-columns:1fr auto;gap:10px;margin:12px 0 10px}
+#mainSpinBtn{min-height:50px;font-size:16px}
+.result-card .result-actions{grid-template-columns:1fr}
+.history-note{margin:-4px 0 12px;color:var(--muted);font-size:12px;line-height:1.35}
+#fxCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:2}
+.wheel-wrap.is-removing{filter:drop-shadow(0 16px 22px rgba(0,0,0,.13)) drop-shadow(0 0 18px rgba(255,184,0,.16))}
+.wheel-wrap.is-gap #wheel{filter:saturate(.92)}
+@media(max-width:520px){.range-maker-grid{grid-template-columns:1fr 1fr}.range-maker-grid #rangeGenerateBtn{grid-column:1/-1}.main-spin-row{grid-template-columns:1fr 92px}}
+@media(prefers-reduced-motion:reduce){#fxCanvas{display:none}}
