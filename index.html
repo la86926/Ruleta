@@ -11,18 +11,18 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ruleta" />
   <title>Ruleta aleatoria</title>
-  <link rel="icon" type="image/png" sizes="512x512" href="apuesta.png?v=20260808-6" />
-  <link rel="shortcut icon" type="image/png" href="apuesta.png?v=20260808-6" />
-  <link rel="apple-touch-icon" sizes="512x512" href="apuesta.png?v=20260808-6" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260808-6" />
-  <link rel="stylesheet" href="styles.css?v=20260808-6" />
-  <link rel="stylesheet" href="motion.css?v=20260808-6" />
-  <link rel="stylesheet" href="enhancements.css?v=20260808-6" />
+  <link rel="icon" type="image/png" sizes="512x512" href="apuesta.png?v=20260808-7" />
+  <link rel="shortcut icon" type="image/png" href="apuesta.png?v=20260808-7" />
+  <link rel="apple-touch-icon" sizes="512x512" href="apuesta.png?v=20260808-7" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260808-7" />
+  <link rel="stylesheet" href="styles.css?v=20260808-7" />
+  <link rel="stylesheet" href="motion.css?v=20260808-7" />
+  <link rel="stylesheet" href="enhancements.css?v=20260808-7" />
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="apuesta.png?v=20260808-6" alt="" /></div><h1>Ruleta aleatoria</h1></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="apuesta.png?v=20260808-7" alt="" /></div><h1>Ruleta aleatoria</h1></div>
       <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
     </header>
 
@@ -33,7 +33,7 @@
           <div class="wheel-wrap" id="wheelWrap">
             <canvas id="wheel" width="900" height="900" aria-label="Ruleta"></canvas>
             <div class="pointer" aria-hidden="true"></div>
-            <div class="hub" aria-hidden="true"><img src="apuesta.png?v=20260808-6" alt="" /></div>
+            <div class="hub" aria-hidden="true"><img src="apuesta.png?v=20260808-7" alt="" /></div>
             <div class="empty-wheel" id="emptyWheel">Agrega al menos 2 opciones para girar la ruleta.</div>
           </div>
           <div class="spin-hint" id="spinHint">Haz clic en la rueda o presiona <span class="kbd">Espacio</span></div>
@@ -103,29 +103,25 @@
   <script>
     (() => {
       try {
-        const palette=['#FF8A80','#82B1FF','#B9F6CA','#FFE0B2','#E1BEE7','#80DEEA','#FFD180','#B39DDB','#A5D6A7','#F8BBD0','#90CAF9','#FFF59D'];
-        const keys=['ruleta-state-v6','ruleta-state-v4','ruleta-state-v3','ruleta-state-v2','ruleta-state-v1'];
+        const keys=['ruleta-state-v7','ruleta-state-v6','ruleta-state-v4','ruleta-state-v3','ruleta-state-v2','ruleta-state-v1'];
         const defaultMarker='ruleta-autohide-default-v2';
         const forceDefault=!localStorage.getItem(defaultMarker);
-        let found=false;
         for (const key of keys) {
           const raw=localStorage.getItem(key);
           if(!raw) continue;
           const saved=JSON.parse(raw);
-          const normalize=(list,offset=0)=>Array.isArray(list)?list.map((v,i)=>({label:typeof v==='string'?v:String(v?.label??''),color:palette[(i+offset)%palette.length]})):list;
-          if(Array.isArray(saved.items)) saved.items=normalize(saved.items);
-          if(Array.isArray(saved.hidden)) saved.hidden=normalize(saved.hidden,(saved.items?.length||0));
-          if(forceDefault || typeof saved.autoHide!=='boolean') saved.autoHide=true;
-          localStorage.setItem('ruleta-state-v6',JSON.stringify(saved));
-          if(key!=='ruleta-state-v6') localStorage.removeItem(key);
-          found=true;
+          const labels=list=>Array.isArray(list)?list.map(v=>typeof v==='string'?v:String(v?.label??'')).filter(Boolean):[];
+          saved.items=labels(saved.items);
+          saved.hidden=labels(saved.hidden);
+          if(forceDefault || typeof saved.autoHide!=='boolean')saved.autoHide=true;
+          localStorage.setItem('ruleta-state-v7',JSON.stringify(saved));
           break;
         }
-        if(forceDefault){if(!found)localStorage.removeItem('ruleta-state-v6');localStorage.setItem(defaultMarker,'1')}
+        if(forceDefault)localStorage.setItem(defaultMarker,'1');
       } catch (_) {}
     })();
   </script>
-  <script src="app.js?v=20260808-6"></script>
-  <script src="enhancements.js?v=20260808-6"></script>
+  <script src="app.js?v=20260808-7"></script>
+  <script src="enhancements.js?v=20260808-7"></script>
 </body>
 </html>
