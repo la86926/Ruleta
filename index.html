@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f7f8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -11,19 +11,26 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ruleta" />
   <title>Ruleta aleatoria</title>
-  <link rel="icon" type="image/png" sizes="512x512" href="apuesta.png?v=20260808-14" />
-  <link rel="shortcut icon" type="image/png" href="apuesta.png?v=20260808-14" />
-  <link rel="apple-touch-icon" sizes="512x512" href="apuesta.png?v=20260808-14" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260808-14" />
-  <link rel="stylesheet" href="styles.css?v=20260808-14" />
-  <link rel="stylesheet" href="motion.css?v=20260808-14" />
-  <link rel="stylesheet" href="enhancements.css?v=20260808-14" />
-  <link rel="stylesheet" href="features.css?v=20260808-14" />
+  <script>
+    (()=>{
+      const version='20260808-15';
+      window.RULETA_ASSET_VERSION=version;
+      const addLink=(rel,href,attrs={})=>{
+        const el=document.createElement('link');el.rel=rel;el.href=`${href}?v=${version}`;
+        Object.entries(attrs).forEach(([key,value])=>el.setAttribute(key,value));document.head.appendChild(el);
+      };
+      addLink('icon','apuesta.png',{type:'image/png',sizes:'512x512'});
+      addLink('shortcut icon','apuesta.png',{type:'image/png'});
+      addLink('apple-touch-icon','apuesta.png',{sizes:'512x512'});
+      addLink('manifest','manifest.webmanifest');
+      ['styles.css','motion.css','enhancements.css','features.css'].forEach(href=>addLink('stylesheet',href));
+    })();
+  </script>
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"><img src="apuesta.png?v=20260808-14" alt="" /></div><h1>Ruleta aleatoria</h1></div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><img data-versioned-asset="apuesta.png" alt="" /></div><h1>Ruleta aleatoria</h1></div>
       <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
     </header>
 
@@ -34,7 +41,7 @@
           <div class="wheel-wrap" id="wheelWrap">
             <canvas id="wheel" width="900" height="900" aria-label="Ruleta"></canvas>
             <div class="pointer" aria-hidden="true"></div>
-            <div class="hub" aria-hidden="true"><img src="apuesta.png?v=20260808-14" alt="" /></div>
+            <div class="hub" aria-hidden="true"><img data-versioned-asset="apuesta.png" alt="" /></div>
             <div class="empty-wheel" id="emptyWheel">Agrega al menos 2 opciones para girar la ruleta.</div>
           </div>
           <div class="spin-hint" id="spinHint">Haz clic en la rueda o presiona <span class="kbd">Espacio</span></div>
@@ -78,6 +85,11 @@
             <button class="btn btn-soft" id="shareBtn">Compartir</button>
             <button class="btn btn-soft" id="lockEditBtn" aria-pressed="false">Bloquear edición</button>
           </div>
+          <div class="file-actions">
+            <button class="btn btn-soft" id="exportBtn">Exportar TXT</button>
+            <button class="btn btn-soft" id="importBtn">Importar TXT</button>
+            <input id="importInput" type="file" accept=".txt,text/plain" hidden />
+          </div>
           <div class="toggle-row"><div class="toggle-copy"><strong>Esconder al terminar</strong><span>El valor ganador desaparece de la siguiente tirada.</span></div><label class="switch" aria-label="Esconder ganadores automáticamente"><input type="checkbox" id="autoHideToggle" checked /><span></span></label></div>
           <div class="toggle-row"><div class="toggle-copy"><strong>Sonido</strong><span>Sonido al girar y al mostrar el ganador.</span></div><label class="switch" aria-label="Activar sonido de la ruleta"><input type="checkbox" id="soundToggle" checked /><span></span></label></div>
 
@@ -96,6 +108,7 @@
 
         <section class="panel history-panel">
           <div class="history-title"><span>Historial</span><div class="history-actions"><button id="copyHistoryBtn">Copiar</button><button id="clearHistoryBtn">Borrar</button></div></div>
+          <div class="history-session-actions"><button class="btn btn-soft" id="undoBtn" disabled>Deshacer</button><button class="btn btn-soft" id="redoBtn" disabled>Rehacer</button></div>
           <p class="history-note">El resultado más reciente queda al final del historial.</p>
           <div class="history" id="history"><span class="history-empty">Aún no hay resultados.</span></div>
         </section>
@@ -109,28 +122,16 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    (() => {
-      try {
-        const keys=['ruleta-state-v7','ruleta-state-v6','ruleta-state-v4','ruleta-state-v3','ruleta-state-v2','ruleta-state-v1'];
-        const defaultMarker='ruleta-autohide-default-v2';
-        const forceDefault=!localStorage.getItem(defaultMarker);
-        for (const key of keys) {
-          const raw=localStorage.getItem(key);
-          if(!raw) continue;
-          const saved=JSON.parse(raw);
-          const labels=list=>Array.isArray(list)?list.map(v=>typeof v==='string'?v:String(v?.label??'')).filter(Boolean):[];
-          saved.items=labels(saved.items);
-          saved.hidden=labels(saved.hidden);
-          if(forceDefault || typeof saved.autoHide!=='boolean')saved.autoHide=true;
-          localStorage.setItem('ruleta-state-v7',JSON.stringify(saved));
-          break;
-        }
-        if(forceDefault)localStorage.setItem(defaultMarker,'1');
-      } catch (_) {}
+    (()=>{
+      const version=window.RULETA_ASSET_VERSION;
+      document.querySelectorAll('[data-versioned-asset]').forEach(el=>{el.src=`${el.dataset.versionedAsset}?v=${version}`});
+      const scripts=['app.js','enhancements.js','features.js'];
+      const load=index=>{
+        if(index>=scripts.length)return;
+        const s=document.createElement('script');s.src=`${scripts[index]}?v=${version}`;s.onload=()=>load(index+1);document.body.appendChild(s);
+      };
+      load(0);
     })();
   </script>
-  <script src="app.js?v=20260808-14"></script>
-  <script src="enhancements.js?v=20260808-14"></script>
-  <script src="features.js?v=20260808-14"></script>
 </body>
 </html>
