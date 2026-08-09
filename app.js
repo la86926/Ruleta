@@ -44,7 +44,7 @@
   let colorCursor=0;
   let items=DEFAULT_ITEMS.map(makeItem),hiddenItems=[],history=[],lastWinner=null,rotation=0;
   let spinning=false,transitioning=false,hasSpun=false,raf=null,toastTimer=null,animationToken=0,pendingHideId=null;
-  let undoStack=[],redoStack=[];
+  let undoStack=[],redoStack=[],lastSettledSpinState=null;
 
   function makeId(){return crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`}
   function makeItem(label,color,id){return{id:id||makeId(),label:String(label).trim(),color:isUsableColor(color)?color:PALETTE[(colorCursor++)%PALETTE.length]}}
@@ -58,13 +58,13 @@
 
   function snapshot(){return{formatVersion:STATE_FORMAT_VERSION,title:titleInput.value,items:items.map(cloneItem),hidden:hiddenItems.map(cloneItem),history:history.map(entry=>({...entry})),autoHide:autoHideToggle.checked,rotation,hasSpun,lastWinner:lastWinner?cloneItem(lastWinner):null,resultVisible:resultCard.classList.contains('show'),resultValue:resultValue.textContent||''}}
   function notifyState(){document.dispatchEvent(new CustomEvent('ruleta:statechange',{detail:{canUndo:undoStack.length>0,canRedo:redoStack.length>0,historyLength:history.length}}))}
-  function clearUndoRedo(){undoStack=[];redoStack=[];notifyState()}
-  function recordBeforeSpin(){undoStack.push(snapshot());if(undoStack.length>30)undoStack.shift();redoStack=[];notifyState()}
+  function clearUndoRedo(){undoStack=[];redoStack=[];lastSettledSpinState=null;notifyState()}
+  function recordBeforeSpin(){undoStack.push(snapshot());if(undoStack.length>30)undoStack.shift();redoStack=[];lastSettledSpinState=null;notifyState()}
 
   function restoreSnapshot(state,{save=true}={}){
     if(!state||!Array.isArray(state.items))return false;
     animationToken++;if(raf){cancelAnimationFrame(raf);raf=null}
-    spinning=false;transitioning=false;pendingHideId=null;colorCursor=0;
+    spinning=false;transitioning=false;pendingHideId=null;colorCursor=0;lastSettledSpinState=null;
     items=state.items.slice(0,250).map(hydrateItem).filter(i=>i.label);
     hiddenItems=Array.isArray(state.hidden)?state.hidden.slice(0,250).map(hydrateItem).filter(i=>i.label):[];
     history=Array.isArray(state.history)?state.history.slice(0,24).map(entry=>({label:String(entry?.label??''),at:Number(entry?.at)||Date.now()})).filter(e=>e.label):[];
@@ -78,8 +78,27 @@
     syncTextarea();updateUI();if(save)persist();notifyState();return true;
   }
 
-  function undoLastResult(){if(spinning)return false;if(transitioning)finishTransitionNow();if(!undoStack.length)return false;const target=undoStack.pop();redoStack.push(snapshot());const ok=restoreSnapshot(target);notifyState();return ok}
-  function redoLastResult(){if(isBusy()||!redoStack.length)return false;const target=redoStack.pop();undoStack.push(snapshot());const ok=restoreSnapshot(target);notifyState();return ok}
+  function undoLastResult(){
+    if(spinning)return false;
+    if(transitioning)finishTransitionNow();
+    if(!undoStack.length)return false;
+    const target=undoStack.pop();
+    const settledState=lastSettledSpinState||snapshot();
+    redoStack.push(settledState);
+    lastSettledSpinState=null;
+    const ok=restoreSnapshot(target);
+    notifyState();
+    return ok;
+  }
+  function redoLastResult(){
+    if(isBusy()||!redoStack.length)return false;
+    const target=redoStack.pop();
+    undoStack.push(snapshot());
+    const ok=restoreSnapshot(target);
+    if(ok)lastSettledSpinState=snapshot();
+    notifyState();
+    return ok;
+  }
 
   function rebuildFromInput(){if(spinning)return;if(transitioning)finishTransitionNow();colorCursor=0;items=parseInput().map(makeItem);hiddenItems=[];history=[];rotation=0;resetSpinState();clearUndoRedo();updateUI();persist()}
 
@@ -103,7 +122,14 @@
 
   function randomIndex(max){if(max<=0)return 0;if(crypto.getRandomValues){const maxUint=0xffffffff,limit=maxUint-(maxUint%max),arr=new Uint32Array(1);do crypto.getRandomValues(arr);while(arr[0]>=limit);return arr[0]%max}return Math.floor(Math.random()*max)}
   const mod=(n,m)=>((n%m)+m)%m;
-  function finishTransitionNow(){if(!transitioning)return;animationToken++;if(raf){cancelAnimationFrame(raf);raf=null}if(pendingHideId){const index=items.findIndex(i=>i.id===pendingHideId);if(index>=0){const [removed]=items.splice(index,1);hiddenItems.push(removed);syncTextarea()}}pendingHideId=null;transitioning=false;resultCard.classList.remove('is-hiding');wheelWrap.classList.remove('is-removing','is-gap','is-closing','just-settled');drawWheel();updateUI();persist()}
+  function finishTransitionNow(){
+    if(!transitioning)return;
+    animationToken++;if(raf){cancelAnimationFrame(raf);raf=null}
+    if(pendingHideId){const index=items.findIndex(i=>i.id===pendingHideId);if(index>=0){const [removed]=items.splice(index,1);hiddenItems.push(removed);syncTextarea()}}
+    pendingHideId=null;transitioning=false;resultCard.classList.remove('is-hiding');wheelWrap.classList.remove('is-removing','is-gap','is-closing','just-settled');
+    lastSettledSpinState=snapshot();
+    drawWheel();updateUI();persist();
+  }
 
   function spin(){
     if(spinning)return;if(transitioning)finishTransitionNow();if(items.length<2){showToast('Agrega al menos 2 opciones para girar.');return}recordBeforeSpin();
@@ -113,10 +139,22 @@
     raf=requestAnimationFrame(frame);
   }
 
-  async function presentWinner(winner){if(!autoHideToggle.checked||!items.some(i=>i.id===winner.id)){transitioning=false;pendingHideId=null;updateUI();return}const token=++animationToken;transitioning=true;pendingHideId=winner.id;updateUI();const ready=await wait(300,token);if(!ready||token!==animationToken)return;await animateRemoveInternal(winner.id,false,token,true)}
+  async function presentWinner(winner){
+    if(!autoHideToggle.checked||!items.some(i=>i.id===winner.id)){
+      transitioning=false;pendingHideId=null;updateUI();lastSettledSpinState=snapshot();persist();return
+    }
+    const token=++animationToken;transitioning=true;pendingHideId=winner.id;updateUI();const ready=await wait(300,token);if(!ready||token!==animationToken)return;await animateRemoveInternal(winner.id,false,token,true)
+  }
   function startFirstSpin(){spin()}
   async function animateHideItemById(id,announce=true){if(spinning)return;if(transitioning)finishTransitionNow();const token=++animationToken;transitioning=true;pendingHideId=id;updateUI();await animateRemoveInternal(id,announce,token,false)}
-  async function animateRemoveInternal(id,announce,token,fromAuto){const removedIndex=items.findIndex(i=>i.id===id);if(removedIndex===-1){pendingHideId=null;transitioning=false;updateUI();return}const oldItems=items.slice(),removed=oldItems[removedIndex],newItems=oldItems.filter((_,i)=>i!==removedIndex);pendingHideId=id;resultCard.classList.add('is-hiding');wheelWrap.classList.add('is-removing');const fadeOk=await tween(1850,t=>{const eased=t<.15?t*.25:.0375+((t-.15)/.85)*.9625,smooth=eased*eased*(3-2*eased);drawWheel({items:oldItems,targetId:id,targetOpacity:1-smooth})},token);if(!fadeOk||token!==animationToken)return;wheelWrap.classList.remove('is-removing');wheelWrap.classList.add('is-gap');drawWheel({items:oldItems,targetId:id,hole:true});const gapOk=await wait(950,token);if(!gapOk||token!==animationToken)return;wheelWrap.classList.remove('is-gap');wheelWrap.classList.add('is-closing');const closeOk=await tween(1650,t=>drawWheel({items:oldItems,closing:true,removedIndex,progress:t}),token);if(!closeOk||token!==animationToken)return;items=newItems;hiddenItems.push(removed);pendingHideId=null;syncTextarea();resultCard.classList.remove('is-hiding');wheelWrap.classList.remove('is-closing');wheelWrap.classList.add('just-settled');setTimeout(()=>wheelWrap.classList.remove('just-settled'),850);transitioning=false;updateUI();persist();if(announce)showToast(`“${removed.label}” fue escondido.`);else if(fromAuto)showToast(`“${removed.label}” salió de la ruleta.`)}
+  async function animateRemoveInternal(id,announce,token,fromAuto){
+    const removedIndex=items.findIndex(i=>i.id===id);if(removedIndex===-1){pendingHideId=null;transitioning=false;updateUI();return}
+    const oldItems=items.slice(),removed=oldItems[removedIndex],newItems=oldItems.filter((_,i)=>i!==removedIndex);pendingHideId=id;resultCard.classList.add('is-hiding');wheelWrap.classList.add('is-removing');
+    const fadeOk=await tween(1850,t=>{const eased=t<.15?t*.25:.0375+((t-.15)/.85)*.9625,smooth=eased*eased*(3-2*eased);drawWheel({items:oldItems,targetId:id,targetOpacity:1-smooth})},token);if(!fadeOk||token!==animationToken)return;
+    wheelWrap.classList.remove('is-removing');wheelWrap.classList.add('is-gap');drawWheel({items:oldItems,targetId:id,hole:true});const gapOk=await wait(950,token);if(!gapOk||token!==animationToken)return;
+    wheelWrap.classList.remove('is-gap');wheelWrap.classList.add('is-closing');const closeOk=await tween(1650,t=>drawWheel({items:oldItems,closing:true,removedIndex,progress:t}),token);if(!closeOk||token!==animationToken)return;
+    items=newItems;hiddenItems.push(removed);pendingHideId=null;syncTextarea();resultCard.classList.remove('is-hiding');wheelWrap.classList.remove('is-closing');wheelWrap.classList.add('just-settled');setTimeout(()=>wheelWrap.classList.remove('just-settled'),850);transitioning=false;updateUI();lastSettledSpinState=snapshot();persist();if(announce)showToast(`“${removed.label}” fue escondido.`);else if(fromAuto)showToast(`“${removed.label}” salió de la ruleta.`)
+  }
   function tween(duration,draw,token){return new Promise(resolve=>{const start=performance.now();function step(now){if(token!==animationToken){resolve(false);return}const t=Math.min(1,(now-start)/duration);draw(t);if(t<1)raf=requestAnimationFrame(step);else resolve(true)}raf=requestAnimationFrame(step)})}
   function wait(ms,token){return new Promise(resolve=>setTimeout(()=>resolve(token===animationToken),ms))}
 
@@ -134,7 +172,7 @@
   function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(snapshot()))}catch(_){}}
 
   function restorePersisted(){try{let raw=localStorage.getItem(STORAGE_KEY);if(!raw){for(const key of LEGACY_STORAGE_KEYS){raw=localStorage.getItem(key);if(raw)break}}if(!raw){autoHideToggle.checked=true;return}const saved=JSON.parse(raw);if(!Array.isArray(saved.items)||!saved.items.length){autoHideToggle.checked=true;return}restoreSnapshot(saved,{save:false});persist();for(const key of LEGACY_STORAGE_KEYS)localStorage.removeItem(key)}catch(_){autoHideToggle.checked=true;colorCursor=0;items=DEFAULT_ITEMS.map(makeItem)}}
-  function importState(state){if(!state||!Array.isArray(state.items)||state.items.length<1)return false;if(spinning)return false;if(transitioning)finishTransitionNow();const importedUndo=Array.isArray(state.undoStack)?state.undoStack.slice(-30):[],importedRedo=Array.isArray(state.redoStack)?state.redoStack.slice(-30):[];undoStack=[];redoStack=[];const ok=restoreSnapshot(state);if(ok){undoStack=importedUndo;redoStack=importedRedo;notifyState()}return ok}
+  function importState(state){if(!state||!Array.isArray(state.items)||state.items.length<1)return false;if(spinning)return false;if(transitioning)finishTransitionNow();const importedUndo=Array.isArray(state.undoStack)?state.undoStack.slice(-30):[],importedRedo=Array.isArray(state.redoStack)?state.redoStack.slice(-30):[];undoStack=[];redoStack=[];const ok=restoreSnapshot(state);if(ok){undoStack=importedUndo;redoStack=importedRedo;lastSettledSpinState=snapshot();notifyState()}return ok}
   function exportState(){return{...snapshot(),undoStack:undoStack.map(s=>JSON.parse(JSON.stringify(s))),redoStack:redoStack.map(s=>JSON.parse(JSON.stringify(s)))}}
 
   async function toggleFullscreen(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(_){showToast('El navegador no permitió activar pantalla completa.')}}
