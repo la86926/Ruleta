@@ -13,7 +13,7 @@
   <title>Ruleta aleatoria</title>
   <script>
     (()=>{
-      const version='20260808-18';
+      const version='20260808-19';
       window.RULETA_ASSET_VERSION=version;
       const addLink=(rel,href,attrs={})=>{
         const el=document.createElement('link');el.rel=rel;el.href=`${href}?v=${version}`;
@@ -125,7 +125,7 @@
     (()=>{
       const version=window.RULETA_ASSET_VERSION;
       document.querySelectorAll('[data-versioned-asset]').forEach(el=>{el.src=`${el.dataset.versionedAsset}?v=${version}`});
-      const scripts=['app.js','enhancements.js','features.js'];
+      const scripts=['app.js','enhancements.js','features.js','integrity.js'];
       const load=index=>{
         if(index>=scripts.length)return;
         const s=document.createElement('script');s.src=`${scripts[index]}?v=${version}`;s.onload=()=>load(index+1);document.body.appendChild(s);
