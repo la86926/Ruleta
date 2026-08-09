@@ -6,6 +6,6 @@
   "background_color": "#f7f7f8",
   "theme_color": "#f7f7f8",
   "icons": [
-    {"src": "apuesta.png?v=20260808-5", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    {"src": "apuesta.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
   ]
 }
