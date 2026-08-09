@@ -118,12 +118,29 @@
   function stopSpinSound(){spinSoundToken++;if(soundRaf){cancelAnimationFrame(soundRaf);soundRaf=null}lastSectorKey=null;lastTickAt=0}
   function winnerSound(){if(!soundEnabled)return;stopSpinSound();tone(660,.12,.062,'sine',0);tone(880,.14,.060,'sine',.09);tone(1100,.17,.056,'sine',.19)}
 
+  function sealAutoHiddenWinnerInStorage(){
+    if(!autoHideToggle?.checked)return;
+    try{
+      const raw=localStorage.getItem('ruleta-state');if(!raw)return;
+      const state=JSON.parse(raw),winner=state?.lastWinner;
+      if(!winner?.id||!Array.isArray(state.items))return;
+      const index=state.items.findIndex(item=>item&&typeof item==='object'&&item.id===winner.id);
+      if(index<0)return;
+      const [removed]=state.items.splice(index,1);
+      state.hidden=Array.isArray(state.hidden)?state.hidden:[];
+      if(!state.hidden.some(item=>item&&typeof item==='object'&&item.id===winner.id))state.hidden.push(removed);
+      localStorage.setItem('ruleta-state',JSON.stringify(state));
+    }catch(_){}
+  }
+
   function confirmReset(){return window.confirm('¿Reiniciar la ruleta? Se borrarán la lista actual, el historial y los valores ocultos.')}
   resetBtn?.addEventListener('click',event=>{if(!confirmReset()){event.preventDefault();event.stopImmediatePropagation();return}stopSpinSound()},true);
   document.addEventListener('keydown',event=>{const tag=document.activeElement?.tagName;if((event.key==='r'||event.key==='R')&&tag!=='TEXTAREA'&&tag!=='INPUT'){if(!confirmReset()){event.preventDefault();event.stopImmediatePropagation();return}stopSpinSound()}},true);
 
   mainSpinBtn?.addEventListener('click',()=>{if(!mainSpinBtn.disabled)startSpinSound()},true);wheel?.addEventListener('click',()=>{if(values().length>=2)startSpinSound()},true);document.addEventListener('keydown',event=>{const tag=document.activeElement?.tagName;if(event.code==='Space'&&tag!=='TEXTAREA'&&tag!=='INPUT'&&tag!=='BUTTON'&&values().length>=2)startSpinSound()},true);
-  if(resultValue){const resultObserver=new MutationObserver(()=>{if(resultValue.textContent.trim())winnerSound()});resultObserver.observe(resultValue,{childList:true,characterData:true,subtree:true})}
+  if(resultValue){const resultObserver=new MutationObserver(()=>{if(resultValue.textContent.trim()){winnerSound();queueMicrotask(sealAutoHiddenWinnerInStorage)}});resultObserver.observe(resultValue,{childList:true,characterData:true,subtree:true})}
+  window.addEventListener('pagehide',sealAutoHiddenWinnerInStorage);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')sealAutoHiddenWinnerInStorage()});
 
   document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});document.addEventListener('touchmove',e=>{if(e.touches?.length>1)e.preventDefault()},{passive:false});document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey)e.preventDefault()},{passive:false});document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey))return;if(['+','-','=','0'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation()}},true);let lastTouchEnd=0;document.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTouchEnd<=320)e.preventDefault();lastTouchEnd=now},{passive:false});
 
