@@ -17,5 +17,5 @@
 .edition-locked .preset,.edition-locked #clearBtn,.edition-locked #restoreBtn,.edition-locked #mixListBtn,.edition-locked #rangeGenerateBtn,.edition-locked #importBtn{opacity:.52;cursor:not-allowed}
 #lockEditBtn.is-locked{font-weight:700}
 html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%}
-button,input,textarea,.wheel-wrap{touch-action:manipulation}
+button,input,textarea,.wheel-wrap{touch-action:pan-x pan-y}
 @media(max-width:520px){.secondary-actions{margin-top:18px!important}.feature-actions{grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 0}.feature-actions #lockEditBtn{grid-column:1/-1}.file-actions{grid-template-columns:1fr 1fr;gap:10px}.history-actions{gap:6px}.history-session-actions{gap:7px}}
